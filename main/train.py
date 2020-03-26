@@ -25,7 +25,7 @@ for epoch in range(cfg.start_epoch, cfg.num_epoch):
             output = model(input, bg_imgs)
 
             update_lr(epoch, G_optimizer)
-            # update_lr(epoch, D_optimizer)
+            update_lr(epoch, D_optimizer)
 
             # G update
             if i%1 == 0:

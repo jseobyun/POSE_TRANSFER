@@ -78,7 +78,6 @@ if __name__ == "__main__":
     video_path = os.path.join(cfg.source_dir, video_name)
     vcap = cv2.VideoCapture(video_path)
 
-    vlogger = colorlogger()
     detector = get_pose_model()
     bg_maker = BackgroundMaker()
 
@@ -86,9 +85,9 @@ if __name__ == "__main__":
         w = vcap.get(cv2.CAP_PROP_FRAME_WIDTH)
         h = vcap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         if w / h != 16 / 9:
-            vlogger.warning("Video aspect ratio is not 16(w) : 9(h)")
+            global_logger.warning("Video aspect ratio is not 16(w) : 9(h)")
     else:
-        assert 0, vlogger.warning("VideoCapture is not opened")
+        assert 0, global_logger.warning("VideoCapture is not opened")
 
     frame_num = 0
 
@@ -98,11 +97,11 @@ if __name__ == "__main__":
     while True:
         valid, frame = vcap.read()
         if not valid:
-            vlogger.warning("VideoCapture doesn't return valid frame.")
+            global_logger.warning("VideoCapture doesn't return valid frame.")
             break
 
         frame_num += 1
-        vlogger.info(f"frame_num : {frame_num}")
+        global_logger.info(f"frame_num : {frame_num}")
 
         frame = cv2.resize(frame, (cfg.w, cfg.h), interpolation = cv2.INTER_CUBIC)
         frame = np.array(frame)
@@ -133,6 +132,7 @@ if __name__ == "__main__":
 
     bg_img = bg_maker.get_background_img()
     cv2.imwrite(os.path.join(cfg.source_dir, mode +'_bg_img.png'), bg_img)
+    annotations = np.array(annotations).reshape(-1, 37)
     np.save(os.path.join(cfg.source_dir, 'annotations', mode+'_annotations.npy'), annotations)
     print("valid", np.shape(annotations)[0], " frame_num", frame_num)
 

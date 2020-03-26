@@ -16,7 +16,7 @@ model = get_model(mode = 'test')
 model.eval()
 
 Dance_dataset = DanceDataset(mode='test')
-Dance_dataloader =DataLoader(dataset= Dance_dataset, batch_size = cfg.test_batch_size, shuffle = True, num_workers = cfg.num_thread)
+Dance_dataloader =DataLoader(dataset= Dance_dataset, batch_size = cfg.test_batch_size, shuffle = False, num_workers = cfg.num_thread)
 
 for i, (heatmaps, bg_imgs) in enumerate(Dance_dataloader):
 
@@ -34,7 +34,7 @@ for i, (heatmaps, bg_imgs) in enumerate(Dance_dataloader):
 
     global_logger.info(f"{i}/{Dance_dataset.len} img done")
 
-    if i > 30:
+    if i > 500:
         break
 
 

@@ -38,18 +38,18 @@ class DanceDataset(Dataset):
         self.logger = global_logger
         if mode == 'train':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'train_annotations.npy'))
+            self.img_idx = np.array(self.data[:, 0], dtype=np.int)
+            self.joints = self.data[:, 1:]
         elif mode =='test':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'norm_test_annotations.npy'))
+            self.joints = self.data
         else:
             assert 0, self.logger.info("Invalid dataset type. Choose the mode between 'train' and 'test'.")
 
         self.img_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=cfg.pixel_mean, std=cfg.pixel_std)])
-
-        self.img_idx= np.array(self.data[:, 0, 0], dtype=np.int)
-        self.joints = self.data[:, 0, 1:]
         self.len = len(self.data)
 
-        self.bg_img = cv2.imread(os.path.join(cfg.source_dir, mode+'_bg_img.png'))
+        self.bg_img = cv2.imread(os.path.join(cfg.source_dir, 'train_bg_img.png'))
         self.bg_img = self.img_transform(self.bg_img)
 
         if mode =='train':

@@ -63,12 +63,12 @@ def get_scale(y_set, s, c):
 if __name__ == "__main__":
 
     training_annot = np.load(training_annot_path)
-    training_fram_num = training_annot[:, 0, 0]
-    training_annot = training_annot[:,0,1:].reshape(-1,18,2) # index 0 has frame number
+    training_fram_num = training_annot[:, 0]
+    training_annot = training_annot[:,1:].reshape(-1,18,2) # index 0 has frame number
 
     test_annot = np.load(test_annot_path)
-    test_fram_num = test_annot[:, 0, 0]
-    test_annot = test_annot[:, 0, 1:].reshape(-1, 18, 2)  # index 0 has frame number
+    test_fram_num = test_annot[:, 0]
+    test_annot = test_annot[:, 1:].reshape(-1, 18, 2)  # index 0 has frame number
 
     # nose and ankle set
     training_nose_y_set = training_annot[:,nose_idx,1]

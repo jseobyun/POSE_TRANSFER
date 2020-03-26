@@ -51,7 +51,7 @@ class Config:
 
     ## testing config
     flip_test = False  # True
-    test_model_epoch = 3
+    test_model_epoch = 20
 
 
 
