@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 
 
 def make_folder(folder_name):
@@ -33,14 +34,24 @@ class Config:
     pixel_std = (0.229, 0.224, 0.225)
 
     ## training config
+    continue_train = False
+
     lr_dec_epoch = [17, 21]
-    num_epoch = 25
+    start_epoch = 0
+    if continue_train:
+        model_file_list = glob.glob(os.path.join(model_dir, '*.pth.tar'))
+        if len(model_file_list) !=0:
+            last_epoch = max([int(file_name[file_name.find('G_') + 2: file_name.find('.pth.tar')]) for file_name in model_file_list])
+            start_epoch = last_epoch
+    num_epoch = 200
     lr = 1e-3
     lr_dec_factor = 10
     batch_size = 8
+    test_batch_size = 1
 
     ## testing config
     flip_test = False  # True
+    test_model_epoch = 3
 
 
 

@@ -44,7 +44,6 @@ class HeadNet(nn.Module):
         x = self.deconv_layers(x)
         x = torch.cat([x, bg_imgs], dim=1)
         x = self.final_layer(x)
-        x = x + bg_imgs
         return x
 
 class Bottleneck(nn.Module):
@@ -137,7 +136,7 @@ class HourglassNet(nn.Module):
         self.num_feats = 128
         self.num_stacks = num_stacks
         self.num_joints = num_joints
-        self.conv1 = nn.Conv2d(24, self.inplanes, kernel_size=3, stride=2, padding= 1, bias=True)
+        self.conv1 = nn.Conv2d(21, self.inplanes, kernel_size=3, stride=2, padding= 1, bias=True)
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.layer1 = self._make_residual(block, self.inplanes, 1)
@@ -287,25 +286,34 @@ def init_weights(m):
         nn.init.normal_(m.weight, std=0.001)
         nn.init.constant_(m.bias, 0)
 
+from utils.train_utils import load_last_model, load_model
 def get_model(mode):
     backbone = HourglassNet()
     head_net = HeadNet()
-    if mode =='train':
-        backbone.apply(init_weights)
-        head_net.apply(init_weights)
     model = TotalFrameWork(backbone, head_net)
     if mode =='train':
+        if cfg.continue_train:
+            model = load_last_model(model, model_type= 'G')
+        else:
+            backbone.apply(init_weights)
+            head_net.apply(init_weights)
+
         model.train()
     elif mode =='test':
+        model = load_model(model, cfg.test_model_epoch, model_type='G')
         model.eval()
     return model.cuda()
+
 
 def get_discriminator(mode):
     model = DiscNet()
     if mode == 'train':
-        model.apply(init_weights)
-        model.eval()
+        if cfg.continue_train:
+            model = load_last_model(model, model_type = 'D')
+        if not cfg.continue_train:
+            model.apply(init_weights)
+            model.eval()
     if mode =='test':
+        model = load_model(model, cfg.test_model_epoch, model_type= 'D')
         model.eval()
-
     return model.cuda()

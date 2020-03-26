@@ -34,6 +34,7 @@ def get_joint_heatmap(target):
 
 class DanceDataset(Dataset):
     def __init__(self, mode):
+        self.mode = mode
         self.logger = global_logger
         if mode == 'train':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'train_annotations.npy'))
@@ -57,20 +58,19 @@ class DanceDataset(Dataset):
             self.do_augment = False
 
     def __getitem__(self, index):
-
-        img_name = self.img_idx[index]
-        img_name = str(img_name)+'.png'
-        img = cv2.imread(os.path.join(cfg.source_dir, 'images', img_name))
-        if not isinstance(img, np.ndarray):
-            raise IOError(f"Fail to read {img_name}")
-
-        joint = self.joints[index, :].reshape(18,2)
+        joint = self.joints[index, :].reshape(18, 2)
         heatmap = get_joint_heatmap(joint)
 
-        img = self.img_transform(img)
-
-        return img, heatmap, self.bg_img
-
+        if self.mode == 'train':
+            img_name = self.img_idx[index]
+            img_name = str(img_name)+'.png'
+            img = cv2.imread(os.path.join(cfg.source_dir, 'images', img_name))
+            if not isinstance(img, np.ndarray):
+                raise IOError(f"Fail to read {img_name}")
+            img = self.img_transform(img)
+            return img, heatmap, self.bg_img
+        elif self.mode == 'test':
+            return heatmap, self.bg_img
     def __len__(self):
         return self.len
 
