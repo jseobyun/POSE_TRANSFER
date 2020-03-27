@@ -38,8 +38,8 @@ class DanceDataset(Dataset):
         self.logger = global_logger
         if mode == 'train':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'train_annotations.npy'))
-            self.img_idx = np.array(self.data[:, 0], dtype=np.int)
-            self.joints = self.data[:, 1:]
+            self.img_idx = np.array(self.data[:, 0, 0], dtype=np.int)
+            self.joints = self.data[:, 0, 1:]
         elif mode =='test':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'norm_test_annotations.npy'))
             self.joints = self.data

@@ -39,13 +39,13 @@ def load_optimizer(optimizer, test_model_epoch, model_type):
 
 import glob
 def load_last_model(model, model_type):
-    model_file_list = glob.glob(os.path.join(cfg.model_dir, '*.pth.tar'))
+    model_file_list = glob.glob(os.path.join(cfg.model_dir, model_type+'*'))
     last_epoch = max([int(file_name[file_name.find(model_type+'_') + 2: file_name.find('.pth.tar')]) for file_name in model_file_list])
     model = load_model(model, last_epoch, model_type)
     return model
 
 def load_last_optimizer(optimizer, model_type):
-    model_file_list = glob.glob(os.path.join(cfg.model_dir, '*.pth.tar'))
+    model_file_list = glob.glob(os.path.join(cfg.model_dir, model_type+'*'))
     last_epoch = max([int(file_name[file_name.find(model_type+ '_') + 2: file_name.find('.pth.tar')]) for file_name in model_file_list])
     optimizer = load_optimizer(optimizer, last_epoch, model_type)
     return optimizer

@@ -8,7 +8,7 @@ from data.dance_dataset import DanceDataset
 from torch.utils.data import DataLoader
 from utils.log_utils import global_logger
 from utils.train_utils import update_lr, save_model, get_optimizer
-from main.loss import L1_loss, BCE_loss
+from main.loss import L1_loss, BCE_loss, Smooth_L1_loss, Perceptual_loss
 
 model = get_model(mode = 'train')
 discriminator = get_discriminator(mode ='train')
@@ -35,7 +35,7 @@ for epoch in range(cfg.start_epoch, cfg.num_epoch):
                 pred_fake = discriminator(output)
                 fake_loss = BCE_loss(pred_fake, 'fake')
 
-                G_loss = L1_loss(imgs, output) + 0.5 * fake_loss
+                G_loss = 0.01*L1_loss(output, imgs) + 0.05*Smooth_L1_loss(output, imgs) + Perceptual_loss(output, imgs) + 100 * fake_loss
                 G_optimizer.zero_grad()
                 G_loss.backward()
                 G_optimizer.step()
@@ -55,7 +55,7 @@ for epoch in range(cfg.start_epoch, cfg.num_epoch):
                 D_loss.backward()
                 D_optimizer.step()
 
-            global_logger.info(f"{epoch}/{cfg.num_epoch} epoch, iter: {i}/{int(Dance_dataset.__len__()/cfg.batch_size)}, G_loss: {G_loss.detach().item()} , D_loss: {D_loss.detach().item()}") #
+            global_logger.info(f"{epoch}/{cfg.num_epoch} epoch, iter: {i}/{int(Dance_dataset.__len__()/cfg.batch_size)}, G_loss: {G_loss.detach().item()} , D_loss: {D_loss.detach().item()}")
 
 
     G_state = {'epoch': epoch, 'network': model.state_dict(), 'optimizer': G_optimizer.state_dict() }

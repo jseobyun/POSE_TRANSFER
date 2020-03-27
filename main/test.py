@@ -12,13 +12,13 @@ from utils.log_utils import global_logger
 
 
 
-model = get_model(mode = 'test')
+model = get_model(mode = 'train')
 model.eval()
 
-Dance_dataset = DanceDataset(mode='test')
+Dance_dataset = DanceDataset(mode='train')
 Dance_dataloader =DataLoader(dataset= Dance_dataset, batch_size = cfg.test_batch_size, shuffle = False, num_workers = cfg.num_thread)
 
-for i, (heatmaps, bg_imgs) in enumerate(Dance_dataloader):
+for i, (_, heatmaps, bg_imgs) in enumerate(Dance_dataloader):
 
     heatmaps, bg_imgs = heatmaps.cuda(), bg_imgs.cuda()
     input = torch.cat([heatmaps, bg_imgs], dim= 1)

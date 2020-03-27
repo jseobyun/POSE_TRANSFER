@@ -39,9 +39,9 @@ class Config:
     lr_dec_epoch = [17, 21]
     start_epoch = 0
     if continue_train:
-        model_file_list = glob.glob(os.path.join(model_dir, '*.pth.tar'))
+        model_file_list = glob.glob(os.path.join(model_dir, 'G*'))
         if len(model_file_list) !=0:
-            last_epoch = max([int(file_name[file_name.find('G_') + 2: file_name.find('.pth.tar')]) for file_name in model_file_list])
+            last_epoch = max([int(file_name[file_name.find('G_')+2 : file_name.find('.pth.tar')]) for file_name in model_file_list])
             start_epoch = last_epoch
     num_epoch = 200
     lr = 1e-3
@@ -51,7 +51,7 @@ class Config:
 
     ## testing config
     flip_test = False  # True
-    test_model_epoch = 20
+    test_model_epoch = 52
 
 
 
