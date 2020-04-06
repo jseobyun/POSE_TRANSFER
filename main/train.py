@@ -20,7 +20,6 @@ D_optimizer = get_optimizer(model, mode= 'train', model_type = 'D')
 
 for epoch in range(cfg.start_epoch, cfg.num_epoch):
     for i, (imgs, label_maps, bg_imgs) in enumerate(Dance_dataloader):
-        print(i)
         real_imgs, label_maps, bg_imgs = imgs.cuda(), label_maps.cuda(), bg_imgs.cuda()
         input = torch.cat([label_maps, bg_imgs], dim= 1)
 

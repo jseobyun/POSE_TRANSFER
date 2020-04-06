@@ -37,7 +37,7 @@ class Config:
     ## training config
     continue_train = False
 
-    lr_dec_epoch = [17, 21]
+    lr_dec_epoch = [5, 15, 25, 35]
     start_epoch = 0
     if continue_train:
         model_file_list = glob.glob(os.path.join(model_dir, 'G*'))
