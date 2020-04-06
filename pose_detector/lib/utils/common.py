@@ -108,18 +108,6 @@ def draw_bboxes(npimg, bboxes):
         cv2.line(npimg, (x + w, y + h), (x+w, y), color, 3)
     return npimg
 
-def remove_humans_underNjoints(humans, N=14):
-    if np.shape(humans)[0] == 0:
-        return np.zeros([0])
-
-    sample = humans.copy()
-    counts = (sample[:,:,0] == -1)
-    counts = np.sum(counts, axis=1)
-    humans = humans[counts < 18-N]
-    if np.shape(humans)[0] == 0:
-        return np.zeros([0])
-    return humans
-
 def humans2array(npimg, humans):
     image_h, image_w = npimg.shape[:2]
     array_humans = []

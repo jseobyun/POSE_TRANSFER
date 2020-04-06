@@ -91,9 +91,12 @@ if __name__ == "__main__":
     norm_test_annot = test_annot.copy()
     norm_test_annot[:, :, 0] -= test_ankle_x_set.reshape(-1, 1)
     norm_test_annot[:, :, 1] -= test_ankle_y_set.reshape(-1, 1)
+    buf = norm_test_annot[0, 0, :2].copy()
     norm_test_annot[:, :, 0] *= scale.reshape(-1, 1)
     norm_test_annot[:, :, 1] *= scale.reshape(-1, 1)
+    buf2 = norm_test_annot[0, 0, :2].copy()
     norm_test_annot[:, :, 0] += test_ankle_x_set.reshape(-1, 1)
     norm_test_annot[:, :, 1] += trans.reshape(-1, 1)
+    norm_test_annot[norm_test_annot < 0] = 0
 
     np.save(os.path.join(cfg.source_dir, 'annotations',  'norm_test_annotations.npy'), norm_test_annot)

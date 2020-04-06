@@ -1,5 +1,6 @@
 import os
 import cv2
+import math
 import numpy as np
 from utils.log_utils import global_logger
 from torch.utils.data.dataset import Dataset
@@ -32,14 +33,38 @@ def get_joint_heatmap(target):
         heatmaps[jidx, :, :] = put_joint_gaussian_map(joint_xy)
     return heatmaps
 
+limb_list = [
+    [1, 2], [1, 5], [2, 3], [3, 4], [5, 6], [6, 7], [1, 8], [8, 9], [9, 10],
+    [1, 11], [11, 12], [12, 13], [1, 0], [0, 14], [14, 16], [0, 15], [15, 17],
+    [2, 16], [5, 17]] #19
+def create_label_map(joints):
+    label_map = np.zeros([19, cfg.input_shape[0], cfg.input_shape[1]], dtype=np.float32)
+    buf_img = np.zeros([cfg.input_shape[0], cfg.input_shape[1]], dtype=np.float32)
+
+    for lidx in range(len(limb_list)):
+        limb = limb_list[lidx]
+        j1, j2 = joints[limb[0], :], joints[limb[1], :]
+        if -1 in j1 or -1 in j2 or 0 in j1 or 0 in j2:
+            continue
+        center = tuple(np.round((j1+j2)/2).astype(int))
+        limb_dir = j2 - j1
+        limb_length = np.linalg.norm(limb_dir)
+        angle = math.degrees(math.atan2(limb_dir[1], limb_dir[0]))
+        polygon = cv2.ellipse2Poly(center, (int(limb_length/2), 4), int(angle), 0, 360, 1)
+        cv2.fillConvexPoly(label_map[lidx, :, :], polygon, 1)
+        cv2.fillConvexPoly(buf_img, polygon, 1)
+    return label_map, buf_img
+
+
+
 class DanceDataset(Dataset):
     def __init__(self, mode):
         self.mode = mode
         self.logger = global_logger
         if mode == 'train':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'train_annotations.npy'))
-            self.img_idx = np.array(self.data[:, 0, 0], dtype=np.int)
-            self.joints = self.data[:, 0, 1:]
+            self.img_idx = np.array(self.data[:, 0], dtype=np.int)
+            self.joints = self.data[:, 1:]
         elif mode =='test':
             self.data = np.load(os.path.join(cfg.source_dir, 'annotations', 'norm_test_annotations.npy'))
             self.joints = self.data
@@ -59,7 +84,9 @@ class DanceDataset(Dataset):
 
     def __getitem__(self, index):
         joint = self.joints[index, :].reshape(18, 2)
-        heatmap = get_joint_heatmap(joint)
+
+        # heatmap = get_joint_heatmap(joint)
+        label_map, buf_img = create_label_map(joint)
 
         if self.mode == 'train':
             img_name = self.img_idx[index]
@@ -68,9 +95,9 @@ class DanceDataset(Dataset):
             if not isinstance(img, np.ndarray):
                 raise IOError(f"Fail to read {img_name}")
             img = self.img_transform(img)
-            return img, heatmap, self.bg_img
+            return img, label_map, self.bg_img
         elif self.mode == 'test':
-            return heatmap, self.bg_img
+            return label_map, self.bg_img
     def __len__(self):
         return self.len
 

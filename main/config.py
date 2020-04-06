@@ -20,6 +20,7 @@ class Config:
     source_dir = os.path.join(data_dir, 'source')
 
     output_dir = os.path.join(root_dir, 'output')
+    result_dir = os.path.join(output_dir, 'result')
     model_dir = os.path.join(output_dir, 'model_dump')
     vis_dir = os.path.join(output_dir, 'vis')
     pose_dir = os.path.join(root_dir, 'pose_detector')
@@ -43,17 +44,17 @@ class Config:
         if len(model_file_list) !=0:
             last_epoch = max([int(file_name[file_name.find('G_')+2 : file_name.find('.pth.tar')]) for file_name in model_file_list])
             start_epoch = last_epoch
-    num_epoch = 200
+    num_epoch = 100
     lr = 1e-3
     lr_dec_factor = 10
-    batch_size = 8
+    batch_size = 6
     test_batch_size = 1
 
     ## testing config
     flip_test = False  # True
-    test_model_epoch = 52
-
-
+    test_model_epoch = 0      # <<<<<<<<<<<<<<<<< test model pick
+    refine_model_epoch = 45
+    test_fps = 24
 
     ## others
     sigma = 2.0
@@ -64,9 +65,19 @@ class Config:
     visualize = False
     do_augment = False
 
-    num_stacks = 2
+    ## G
+    num_stacks = 3
     num_blocks = 2
 
+    ## D
+    input_nc = 22
+    output_nc = 3
+    ndf = 64
+
+    ngf = 32
+
+    n_layers_D = 3
+    num_D =1
 
     pose_weight_path = os.path.join(pose_dir, 'weights/pose_model_old.pth')
 

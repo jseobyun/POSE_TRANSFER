@@ -9,11 +9,13 @@ from pose_detector.lib.network.get_models import get_pose_model
 from pose_detector.get_results import get_hm_paf
 from pose_detector.lib.utils.paf_to_pose import paf_to_pose_cpp
 from pose_detector.lib.config import pose_cfg
-from pose_detector.lib.utils.common import get_bboxes, humans2array, remove_humans_underNjoints, CocoPart
+from pose_detector.lib.utils.common import get_bboxes, humans2array, CocoPart
 
 nose_idx = CocoPart.Nose.value
 R_eye_idx = CocoPart.REye.value
 L_eye_idx = CocoPart.LEye.value
+R_ankle_idx = CocoPart.RAnkle.value
+L_ankle_idx = CocoPart.LAnkle.value
 others_idx = np.asarray(np.arange(0,18,1))
 others_idx = np.delete(others_idx, [nose_idx, R_eye_idx, L_eye_idx])
 
@@ -25,7 +27,6 @@ class BackgroundMaker():
         self.max_update = 120
         self.update_num = 0
         self.isDone = False
-        self.blogger = global_logger()
 
     def make_bbox_mask(self, bbox):
         binary_mask = np.ones([cfg.h, cfg.w, 3])
@@ -54,27 +55,44 @@ class BackgroundMaker():
             output_bg = np.array(output_bg, dtype=np.uint8)
             return output_bg
         else:
-            self.blogger.info(f"Background image is not done yet: {self.update_num}/{self.max_update}")
+            global_logger.info(f"Background image is not done yet: {self.update_num}/{self.max_update}")
             return None
 
-
-def check_visibility(humans):
+def check_visibility(humans, thershold = 5):
     # b, 18, 2
     B, J, C = np.shape(humans)
 
     pick = []
-    for bidx in range(B):
-        others = humans[bidx, others_idx, :]
-        if -1 not in others:
+    for bidx in range(B): # always B==1
+        isvisible = True
+        # check ankle visibility
+        R_ankle = humans[bidx, R_ankle_idx, 0]
+        L_ankle = humans[bidx, L_ankle_idx, 0]
+        if R_ankle == -1 or L_ankle == -1:
+            isvisible = False
+
+        # check others visibility
+        others = humans[bidx, others_idx, 0]
+        if np.shape(others)[0] !=0:
+            invalids = np.argwhere(others==-1)
+            invalids = np.shape(invalids)[0]
+        else:
+            invalids = 0
+
+        if invalids >= thershold:
+            isvisible = False
+
+        if isvisible:
             pick.append(bidx)
+
     humans = humans[pick, :, :]
     if np.shape(humans)[0] == 0:
         return np.zeros([0])
     return humans
 
 if __name__ == "__main__":
-    mode = 'train' #'dst
-    video_name = "train.mp4"
+    mode = 'test' #'dst
+    video_name = "test.mp4"
     video_path = os.path.join(cfg.source_dir, video_name)
     vcap = cv2.VideoCapture(video_path)
 
@@ -92,8 +110,7 @@ if __name__ == "__main__":
     frame_num = 0
 
     annotations = []
-    invalid_count = 0
-    valid_count = 0
+    invalids = []
     while True:
         valid, frame = vcap.read()
         if not valid:
@@ -112,10 +129,15 @@ if __name__ == "__main__":
         humans = paf_to_pose_cpp(hm, paf, pose_cfg)
         humans = humans2array(frame, humans)
 
-        # check ankel visibility
-        # humans = check_visibility(humans)
+        if np.shape(humans)[0] == 0:
+            invalids.append(frame_num)
+            continue
+
+        # check ankle visibility
+        humans = check_visibility(humans)
 
         if np.shape(humans)[0] != 1:
+            invalids.append(frame_num)
             continue
 
         bboxes = get_bboxes(frame, humans)
@@ -134,7 +156,7 @@ if __name__ == "__main__":
     cv2.imwrite(os.path.join(cfg.source_dir, mode +'_bg_img.png'), bg_img)
     annotations = np.array(annotations).reshape(-1, 37)
     np.save(os.path.join(cfg.source_dir, 'annotations', mode+'_annotations.npy'), annotations)
-    print("valid", np.shape(annotations)[0], " frame_num", frame_num)
+    print("valid", np.shape(annotations)[0], "invalid", len(invalids), " frame_num", frame_num)
 
     vcap.release()
 
