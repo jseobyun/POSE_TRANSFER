@@ -25,6 +25,7 @@ class Config:
     vis_dir = os.path.join(output_dir, 'vis')
     pose_dir = os.path.join(root_dir, 'pose_detector')
     util_dir = os.path.join(root_dir, 'utils')
+    pose_dir = os.path.join(root_dir,'pose_detector')
 
     ## input, output
     h = 288
@@ -79,7 +80,7 @@ class Config:
     n_layers_D = 3
     num_D =1
 
-    pose_weight_path = os.path.join(pose_dir, 'weights/pose_model_old.pth')
+    pose_weight_path = os.path.join(pose_dir, 'weights/pose_model.pth')
 
     def set_args(self, gpu_ids, continue_train=False):
         self.gpu_ids = gpu_ids
@@ -92,5 +93,10 @@ cfg = Config()
 # sys.path.insert(0, os.path.join(cfg.root_dir, 'common'))
 add_pypath(cfg.data_dir)
 make_folder(cfg.model_dir)
+make_folder(cfg.source_dir)
+make_folder(cfg.result_dir)
+make_folder(os.path.join(cfg.source_dir, 'images'))
+make_folder(os.path.join(cfg.source_dir, 'annotations'))
 make_folder(cfg.vis_dir)
+make_folder(os.path.join(cfg.pose_dir, 'weights'))
 
